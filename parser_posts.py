@@ -16,6 +16,7 @@ class UserHandler(xml.sax.ContentHandler):
 		self.ownerName = ""
 		self.tags = ""
 		self.postCount = 0
+		self.UserTagsDict = {}
 	
 	#read data of one user
 	#reads id, reputation, location.
@@ -29,18 +30,31 @@ class UserHandler(xml.sax.ContentHandler):
 			if "OwnerUserId" in attributes.getNames():				
 				self.ownerId = attributes["OwnerUserId"]
 				self.ownerName = "See owner ID"
-			elif "OwnerDisplayName" in attributes.getNames():
+				user = self.ownerId
+				if self.ownerId not in self.UserTagsDict.keys():
+					self.UserTagsDict[user] = {}#Create dict for a user
+			elif "OwnerDisplayName" in attributes.keys():
 				self.ownerName = attributes["OwnerDisplayName"]
 				self.ownerId = "Not specified"
+				user = self.ownerName
+				if self.ownerName not in self.UserTagsDict.keys():
+					self.UserTagsDict[user] = {}#Create dict for a user
 			else:
 				self.ownerName = "Not specified"
-				self.ownerId = "Not specified"		
+				self.ownerId = "Not specified"
 			
 			if self.typeId == "1":
 				if "AcceptedAnswerId" in attributes.getNames():
 					self.linkedId = attributes["AcceptedAnswerId"]
 				else: self.linkedId = "No accepted answer"
-				self.tags = attributes["Tags"]				
+				self.tags = attributes["Tags"]
+				tags = self.tags[1:-1].split('><')
+				for tag in tags:
+					self.UserTagsDict[user][tag] = self.UserTagsDict[user].get(tag,0)+1
+				print '---------------------'
+				print 'User:', self.ownerId
+				for tag in self.UserTagsDict[user].keys():
+					print tag, self.UserTagsDict[user][tag]
 			elif self.typeId == "2": 
 				self.linkedId = attributes["ParentId"]
 				self.tags = "N/A"
